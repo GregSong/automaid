@@ -18,5 +18,10 @@
             "email": "kuroro2121@gmail.com"
         }
     ],
+    "autoload":{
+        "psr-0":{
+            "Automaid":"src"
+        }
+    },
     "bin":["apt","add_imports.sed", "update_imports.sed", "handle_imports.sh"]
 }
