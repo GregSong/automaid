@@ -1,0 +1,2 @@
+services:
+    waitress: { class: Greg\ATC\Common\Service\Waitress }

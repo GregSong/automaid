@@ -1,0 +1,4 @@
+services:
+    test_service1: { class: DITestServiceOne }
+    test_service2: { class: DITestServiceTwo }
+    base_service: { class: DITestBase, calls: [[setTestServiceOne, ['@test_service1']], [setTestServiceTwo, ['@test_service2']], [setWaitress, ['@waitress']], [setUrl, ['%%url%%']]] }

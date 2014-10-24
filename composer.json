@@ -4,6 +4,9 @@
     "require": {
         "symfony/symfony": "2.5.5"
     },
+    "config": {
+      "bin-dir": "bin"
+    },
     "require-dev": {
       "sensio/generator-bundle": "~2.3",
       "codeception/codeception": "~2.0"
@@ -14,5 +17,6 @@
             "name": "Greg Song",
             "email": "kuroro2121@gmail.com"
         }
-    ]
+    ],
+    "bin":["apt","add_imports.sed", "update_imports.sed", "handle_imports.sh"]
 }
