@@ -8,6 +8,7 @@
  */
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
+use Symfony\Component\Console\Application;
 
 $loader = (require_once __DIR__ . '/autoload.php');
 require_once __DIR__ . '/../../app/AppKernel.php';
@@ -25,10 +26,7 @@ AnnotationRegistry::registerLoader(
  */
 
 
-/*$apt = new \AutoMaid\AutoMaid();
-$apt->init();
-$ret = $apt->loadFiles(__DIR__ . '/../../src');
-$apt->parseServices();
-$apt->writeServiceConfiguration();*/
-
-
+$app = new Application('Automaid', '0.0.1');
+$app->add(new \AutoMaid\Command\ConfigurationInit('configuration:init'));
+$app->add(new \AutoMaid\Command\ServiceUpdate('service:update'));
+$app->run();
