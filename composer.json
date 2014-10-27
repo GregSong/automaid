@@ -18,7 +18,7 @@
     ],
     "autoload":{
         "psr-4":{
-            "AutoMaid\\":"src/"
+            "AutoMaid\\":"src/AutoMaid"
         }
     },
     "bin":["bin/apt","bin/add_imports.sed", "bin/update_imports.sed", "bin/handle_imports.sh"]
