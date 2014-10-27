@@ -18,7 +18,7 @@
     ],
     "autoload":{
         "psr-0":{
-            "Automaid":"src"
+            "kuroro2121\\automaid\\":"src/"
         }
     },
     "bin":["bin/apt","bin/add_imports.sed", "bin/update_imports.sed", "bin/handle_imports.sh"]
