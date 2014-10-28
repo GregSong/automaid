@@ -29,7 +29,7 @@ class ConfigurationInit extends Command {
         // Step 2. handle other services.yml files
         $files = shell_exec('find ' . $projectDir . '/src -name "services.yml" ');
         foreach (preg_split('/ +/', $files) as $file) {
-            shell_exec(__DIR__ . '/../../../bin/handle_imports.sh ' . $file);
+            shell_exec(__DIR__ . '/../../../bin/handle_imports.sh ' . trim($file));
         }
     }
 
