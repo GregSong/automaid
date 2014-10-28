@@ -1,6 +1,7 @@
 {
     "name": "kuroro2121/automaid",
     "description": "Scaffolding Tools for web application",
+    "version": "0.0.2-alpha1",
     "type":"library",
     "require": {
         "symfony/symfony": "2.5.5"
