@@ -19,14 +19,15 @@ class ConfigurationInit extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $projectDir = dirname(dirname(dirname(dirname(dirname(dirname((__DIR__)))))));
         // Step 1. handle app/config/config.yml
-        $path = __DIR__ . '/../../../../../../app/config/config.yml';  // TODO make this configurable later
+        $path = $projectDir . '/app/config/config.yml';  // TODO make this configurable later
         if (file_exists($path)) {
             shell_exec(__DIR__ . '/../../../bin/handle_imports.sh ' . $path);
         }
 
         // Step 2. handle other services.yml files
-        $files = shell_exec('find ' . __DIR__ . '/../../../../../../src -name "services.yml" ');
+        $files = shell_exec('find ' . $projectDir . '/src -name "services.yml" ');
         foreach (str_split($files, 1) as $file) {
             shell_exec(__DIR__ . '/../../../bin/handle_imports.sh ' . $file);
         }

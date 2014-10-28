@@ -23,10 +23,11 @@ class ConfigurationGen extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $projectDir = $projectDir = dirname(dirname(dirname(dirname(dirname(dirname((__DIR__)))))));
+        $projectSrc = $projectDir . '/src';
         $automaid = new AutoMaid();
         $automaid->init();
-        $projectDir = dirname(dirname(dirname(dirname(dirname(__DIR__)))));
-        $projectSrc = $projectDir . '/src';
+
         $automaid->loadFiles($projectSrc);
         $automaid->getServices();
         $automaid->parseServices();
