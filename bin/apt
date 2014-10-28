@@ -28,5 +28,5 @@ AnnotationRegistry::registerLoader(
 
 $app = new Application('Automaid', '0.0.1');
 $app->add(new \AutoMaid\Command\ConfigurationInit('configuration:init'));
-$app->add(new \AutoMaid\Command\ServiceUpdate('service:update'));
+$app->add(new \AutoMaid\Command\ConfigurationGen('configuration:generate'));
 $app->run();
