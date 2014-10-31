@@ -65,7 +65,7 @@ class AutoMaid
 
     function __construct()
     {
-        $this->projectDir = __DIR__ . '/../../';
+        $this->projectDir = __DIR__ . '/../../../../..';
         $this->logger     = new Logger('AutoMaid');
         $this->logger->pushHandler(
             new StreamHandler('php://stdin', Logger::INFO)
