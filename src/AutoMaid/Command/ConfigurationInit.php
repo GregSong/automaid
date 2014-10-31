@@ -26,9 +26,9 @@ class ConfigurationInit extends Command
         $this->detectProjectDir();
 
         // Step 1. handle other services.yml files
-        $files = shell_exec(
+        $files = preg_split('/[ \n]+/', shell_exec(
             'find ' . $this->projectDir . '/src -name "services.yml" '
-        );
+        ));
 
         // Step 2. handle app/config/config.yml
         $files[] = $this->projectDir . '/app/config/config.yml';  // TODO make this configurable later
