@@ -40,4 +40,12 @@ class Waitress {
         return json_encode(self::$orders);
     }
 
+    /**
+     * @return mixed
+     */
+    public function getDummyService()
+    {
+        return $this->dummyService;
+    }
+
 } 
