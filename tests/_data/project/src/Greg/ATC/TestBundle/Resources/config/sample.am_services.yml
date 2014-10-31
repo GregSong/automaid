@@ -1,4 +1,5 @@
 services:
+    base_controller: { class: Greg\ATC\TestBundle\Common\Controller, calls: [[setDummyServiceTwo, ['@dummy_service_two']]] }
     dummy_service: { class: Greg\ATC\TestBundle\Common\Service\DummyService }
     dummy_service_two: { class: Greg\ATC\TestBundle\Common\Service\DummyServiceTwo }
     waitress: { class: Greg\ATC\TestBundle\Common\Service\Waitress, calls: [[setDummyService, ['@dummy_service']]] }
