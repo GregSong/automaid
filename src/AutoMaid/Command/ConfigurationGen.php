@@ -26,10 +26,11 @@ class ConfigurationGen extends Command {
         $projectDir = $projectDir = dirname(dirname(dirname(dirname(dirname(dirname((__DIR__)))))));
         $projectSrc = $projectDir . '/src';
         $automaid = new AutoMaid();
+        $automaid->setProjectDir($projectDir);
         $automaid->init();
 
         $automaid->loadFiles($projectSrc);
-        $automaid->getServices();
+//        $automaid->getServices();
         $automaid->parseServices();
 
         $automaid->writeServiceConfiguration();

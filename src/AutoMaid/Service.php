@@ -16,6 +16,7 @@ class Service
     const CONSTANT   = 2;
 
     protected $name;
+    protected $alias;
     protected $clazz;
     protected $setter;
     /**
@@ -31,10 +32,11 @@ class Service
      * @param $name
      * @param string $clazz Only generated service needs to know class name
      */
-    function __construct($name, $clazz = '')
+    function __construct($name, $clazz = '', $alias = '')
     {
         $this->name  = $name;
         $this->clazz = $clazz;
+        $this->alias = $alias;
     }
 
     /**
@@ -100,8 +102,8 @@ class Service
                 $type = self::EXPRESSION;
             } elseif ($depend[0] == '@') {
                 if (strlen($depend) >= 2 && $depend[1] != '@') {
-                    $serviceName = substr($depend,1);
-                    $type = self::SERVICE;
+                    $serviceName = substr($depend, 1);
+                    $type        = self::SERVICE;
                 } else {
                     $type = self::CONSTANT;
                 }
@@ -109,9 +111,9 @@ class Service
 
             $this->depends[$name] = array(
                 'service' => $serviceName,
-                'type'   => $type,
-                'setter' => 'set' . ucwords($name),
-                'depend' => $depend,
+                'type'    => $type,
+                'setter'  => 'set' . ucwords($name),
+                'depend'  => $depend,
             );
         }
     }
@@ -124,5 +126,21 @@ class Service
     public function getCfgPath()
     {
         return $this->cfgPath;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return $this->alias;
+    }
+
+    /**
+     * @param string $alias
+     */
+    public function setAlias($alias)
+    {
+        $this->alias = $alias;
     }
 }

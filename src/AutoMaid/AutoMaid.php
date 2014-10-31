@@ -81,7 +81,7 @@ class AutoMaid
         }
 
         if (class_exists('AppKernel')) {
-            $this->kernel = new AppKernel('dev', true);
+            $this->kernel = new \AppKernel('dev', true);
             //TODO Greg: below statement will cause a exception will booting kernel, a duplication raised. I may check it later
             $this->kernel->boot();
             $this->container = $this->kernel->getContainer();
@@ -159,12 +159,45 @@ class AutoMaid
      */
     public function getServices()
     {
-        if (class_exists('AppKernel')) {
+        if (!empty($this->container)) {
             // TODO Greg: below code is questionable as getServiceIds is not part of ContainerInterface
-            $serviceIDs = $this->container->getServiceIds();
-            foreach ($serviceIDs as $serviceID) {
-                $this->definedServices[] = new Service($serviceID);
+            // Use reflection to get services and alias of container
+            $containerClazz    = new \ReflectionClass($this->container);
+            $servicesProperty  = $containerClazz->getProperty('services');
+            $aliasesProperty   = $containerClazz->getProperty('aliases');
+            $methodMapProperty = $containerClazz->getProperty('methodMap');
+            $servicesProperty->setAccessible(true);
+            $aliasesProperty->setAccessible(true);
+            $methodMapProperty->setAccessible(true);
+            $services  = $servicesProperty->getValue($this->container);
+            $aliases   = $aliasesProperty->getValue($this->container);
+            $methodMap = $methodMapProperty->getValue($this->container);
+            /*foreach ($services as $serviceName => $method) {
+                $alias = '';
+                foreach ($aliases as $a => $n) {
+                    if ($n == $serviceName) {
+                        $alias = $a;
+                        break;
+                    }
+                }
+
+                $this->definedServices[] = new Service(
+                    $serviceName, '', $alias
+                );
+            }*/
+            foreach ($methodMap as $serviceName => $method) {
+                $alias = '';
+                foreach ($aliases as $a => $n) {
+                    if ($n == $serviceName) {
+                        $alias = $a;
+                        break;
+                    }
+                }
+                $this->definedServices[] = new Service(
+                    $serviceName, '', $alias
+                );
             }
+
         }
     }
 
@@ -370,7 +403,9 @@ class AutoMaid
             $this->logger->log('debug', "Validating service : $serviceName");
             if ($val['type'] == Service::SERVICE) {
                 foreach ($this->generateServices as $s) {
-                    if ($s->getName() == $val['service']) {
+                    if ($s->getName() == $val['service'] || $s->getAlias(
+                        ) == $val['service']
+                    ) {
                         $depOn = $s;
                         break;
                     }
@@ -378,7 +413,9 @@ class AutoMaid
 
                 if (empty($depOn)) {
                     foreach ($this->definedServices as $s) {
-                        if ($s->getName() == $val['service']) {
+                        if ($s->getName() == $val['service'] || $s->getAlias(
+                            ) == $val['service']
+                        ) {
                             $depOn = $s;
                             break;
                         }
