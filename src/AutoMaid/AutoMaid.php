@@ -81,7 +81,7 @@ class AutoMaid
         }
 
         if (class_exists('AppKernel')) {
-            $this->kernel = new AppKernel('dev', true);
+            $this->kernel = new \AppKernel('dev', true);
             //TODO Greg: below statement will cause a exception will booting kernel, a duplication raised. I may check it later
             $this->kernel->boot();
             $this->container = $this->kernel->getContainer();
@@ -159,7 +159,7 @@ class AutoMaid
      */
     public function getServices()
     {
-        if (class_exists('AppKernel')) {
+        if (!empty($this->container)) {
             // TODO Greg: below code is questionable as getServiceIds is not part of ContainerInterface
             $serviceIDs = $this->container->getServiceIds();
             foreach ($serviceIDs as $serviceID) {
