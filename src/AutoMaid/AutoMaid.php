@@ -295,7 +295,7 @@ class AutoMaid
 
             // This is a bundle service so put it under @Bundle/Common/Service
             if (preg_match(
-                '/(^.+\/.+Bundle)\/Common\/Service/',
+                '/(^.+\/.+Bundle)\//',
                 $dir,
                 $match
             )) {

@@ -1,3 +1,6 @@
-services: null
-imports:
-    - { resource: am_services.yml, ignore_errors: true }
+services:
+    base_controller: { class: Greg\ATC\TestBundle\Common\Controller, calls: [[setDummyServiceTwo, ['@dummy_service_two']]] }
+    dummy_service: { class: Greg\ATC\TestBundle\Common\Service\DummyService }
+    dummy_service_two: { class: Greg\ATC\TestBundle\Common\Service\DummyServiceTwo }
+    waitress: { class: Greg\ATC\TestBundle\Common\Service\Waitress, calls: [[setDummyService, ['@dummy_service']]] }
+    test_controller: { class: Greg\ATC\TestBundle\Contorller\TestController, calls: [[setDummyServiceTwo, ['@dummy_service_two']], [setWaitress, ['@waitress']]] }
