@@ -6,9 +6,18 @@
  * Time: 12:32
  */
 
-namespace Greg\ATC\Common\Service;
+namespace Greg\ATC\TestBundle\Common\Service;
 
-trait WaitressTraits {
+use AutoMaid\Annotation\DepOn;
+
+/**
+ * Class WaitressTrait
+ * @package Greg\ATC\Common\Service
+ * @DepOn({
+ * "waitress":"@waitress"
+ * })
+ */
+trait WaitressTrait {
     public  $waitress;
 
     /**

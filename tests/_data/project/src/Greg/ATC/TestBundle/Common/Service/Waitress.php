@@ -5,15 +5,30 @@
  * Date: 14/10/22
  * Time: 11:39
  */
-namespace Greg\ATC\Common\Service;
+namespace Greg\ATC\TestBundle\Common\Service;
 
 
 
 /**
  * Class Waitress
  * @\AutoMaid\Annotation\ServiceAnnotation("waitress")
+ * @\AutoMaid\Annotation\DepOn({
+ * "dummyService":"@dummy_service"
+ * })
  */
 class Waitress {
+    protected $dummyService;
+
+    /**
+     * @param mixed $dummyService
+     */
+    public function setDummyService($dummyService)
+    {
+        $this->dummyService = $dummyService;
+    }
+
+
+
     public static $orders = array();
     public function order($name)
     {

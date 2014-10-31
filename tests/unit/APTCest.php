@@ -1,6 +1,5 @@
 <?php
 use AutoMaid\AutoMaid;
-use \UnitTester;
 
 class APTCest
 {
@@ -23,9 +22,10 @@ class APTCest
     public function parse_services(UnitTester $I)
     {
         $I->amGoingTo('Parse service annotation of a class');
+        $this->automaid->setProjectDir(__DIR__ . '/../_data/project');
         $this->automaid->init();
         $this->automaid->loadFiles(__DIR__ . '/../_code');
-        $this->automaid->getServices();
+        $this->automaid->loadFiles(__DIR__ . '/../_data');
         $this->automaid->parseServices();
         $services = $this->automaid->getGenServices();
 
@@ -44,15 +44,23 @@ class APTCest
             $testServiceTwo->getName(),
             $baseService->getDepends()['testServiceTwo']['service']
         );
+
+        $test_controller_service = $services[7];
+        $I->assertEquals(
+            2,
+            sizeof($test_controller_service->getDepends()),
+            'Test controller has two dependencies which introduced by trait and parent class'
+        );
     }
 
     public function load_php_files(UnitTester $I)
     {
         $I->amGoingTo('Load all php files');
+        $this->automaid->setProjectDir(__DIR__ . '/../_data/project');
         $this->automaid->init();
         $num = $this->automaid->loadFiles(__DIR__ . '/../_code');
 
-        $I->assertEquals(5, $num);
+        $I->assertEquals(6, $num);
 
     }
 
@@ -87,7 +95,6 @@ class APTCest
         $this->automaid->setProjectDir(__DIR__ . '/../_data/project');
         $this->automaid->init();
         $this->automaid->loadFiles(__DIR__ . '/../_data/project');
-        $this->automaid->getServices();
         $this->automaid->parseServices();
 
         $this->automaid->writeServiceConfiguration();
@@ -98,10 +105,14 @@ class APTCest
 
         $I->seeFileFound($bundleConfigPath);
 
-        $I->runShellCommand("diff $globalConfigPath " . __DIR__ . '/../_data/project/app/config/sample.am_services.yml');
+        $I->runShellCommand(
+            "diff $globalConfigPath " . __DIR__ . '/../_data/project/app/config/sample.am_services.yml'
+        );
         $I->dontSeeInShellOutput('differ');
 
-        $I->runShellCommand("diff $bundleConfigPath " . __DIR__ . '/../_data/project/src/Greg/ATC/TestBundle/Resources/config/sample.am_services.yml');
+        $I->runShellCommand(
+            "diff $bundleConfigPath " . __DIR__ . '/../_data/project/src/Greg/ATC/TestBundle/Resources/config/sample.am_services.yml'
+        );
         $I->dontSeeInShellOutput('differ');
 
         $I->deleteFile($globalConfigPath);

@@ -7,7 +7,7 @@
  */
 namespace AutoMaid;
 
-use AppKernel;
+//use AppKernel;
 use Doctrine\Common\Annotations\AnnotationReader as Reader;
 use Monolog\Handler\StreamHandler;
 use RecursiveDirectoryIterator;
@@ -80,12 +80,16 @@ class AutoMaid
             $this->initConfigurationFiles($this->amConfigFiles);
         }
 
-        $this->kernel = new AppKernel('dev', true);
-        //TODO Greg: below statement will cause a exception will booting kernel, a duplication raised. I may check it later
-        $this->kernel->boot();
-        $this->container        = $this->kernel->getContainer();
+        if (class_exists('AppKernel')) {
+            $this->kernel = new AppKernel('dev', true);
+            //TODO Greg: below statement will cause a exception will booting kernel, a duplication raised. I may check it later
+            $this->kernel->boot();
+            $this->container = $this->kernel->getContainer();
+            $this->getServices();
+        }
+
         $this->annotationReader = new Reader();
-        $this->getServices();
+
     }
 
     /**
@@ -155,10 +159,12 @@ class AutoMaid
      */
     public function getServices()
     {
-        // TODO Greg: below code is questionable as getServiceIds is not part of ContainerInterface
-        $serviceIDs = $this->container->getServiceIds();
-        foreach ($serviceIDs as $serviceID) {
-            $this->definedServices[] = new Service($serviceID);
+        if (class_exists('AppKernel')) {
+            // TODO Greg: below code is questionable as getServiceIds is not part of ContainerInterface
+            $serviceIDs = $this->container->getServiceIds();
+            foreach ($serviceIDs as $serviceID) {
+                $this->definedServices[] = new Service($serviceID);
+            }
         }
     }
 
@@ -191,6 +197,40 @@ class AutoMaid
     }
 
     /**
+     * @param \ReflectionClass|null $clazz
+     * @return array
+     */
+    public function parseDepOn($clazz)
+    {
+        if (empty($clazz)) {
+            return array();
+        }
+        $depOns = array();
+
+        // Parse parents
+        $depOns = array_merge(
+            $depOns,
+            $this->parseDepOn($clazz->getParentClass())
+        );
+
+        $depOnAnnotation = $this->annotationReader->getClassAnnotation(
+            $clazz,
+            self::DepA
+        );
+        if (!empty($depOnAnnotation)) {
+            $depOns = array_merge($depOns, $depOnAnnotation->getServices());
+        }
+
+        // Parse trait
+        foreach ($clazz->getTraits() as $trait) {
+            $depOns = array_merge($depOns, $this->parseDepOn($trait));
+        }
+
+
+        return $depOns;
+    }
+
+    /**
      * @param $clazz
      * @return Service
      */
@@ -208,18 +248,12 @@ class AutoMaid
                 'Found service ' . $serviceAnnotation->getName()
             );
             $service = new Service($serviceAnnotation->getName(), $clazz);
-            // Greg: process DepOn
-            $depOnAnnotation = $this->annotationReader->getClassAnnotation(
-                $reflectionClass,
-                self::DepA
-            );
-            if (!empty($depOnAnnotation)) {
-                $service->add(
-                    $depOnAnnotation->getServices()
-                );
-            }
 
-            // TODO Greg: link this service to a am_services.yml
+            // Greg: process DepOn
+
+            $service->add(
+                $this->parseDepOn($reflectionClass)
+            );
 
             // Get File path of service
             $path  = $reflectionClass->getFileName();
@@ -333,7 +367,8 @@ class AutoMaid
     {
         // Check depended service
         foreach ($service->getDepends() as $serviceName => $val) {
-            if($val['type'] == Service::SERVICE) {
+            $this->logger->log('debug', "Validating service : $serviceName");
+            if ($val['type'] == Service::SERVICE) {
                 foreach ($this->generateServices as $s) {
                     if ($s->getName() == $val['service']) {
                         $depOn = $s;
