@@ -94,11 +94,13 @@ class Service
      */
     public function add($depends)
     {
+        $serviceName = '';
         foreach ($depends as $name => $depend) {
             // Parse type, Service, Expression, Constants
-            $pos  = 0;
+//            $pos  = 0;
             $type = self::CONSTANT;
-            if (false !== $pos = strpos($depend, '@=') && $pos == 0) {
+            // TODO Greg: I don't know how to distinct false and 0
+            if (false !== strpos($depend, '@=') && strpos($depend, '@=') == 0) {
                 $type = self::EXPRESSION;
             } elseif ($depend[0] == '@') {
                 if (strlen($depend) >= 2 && $depend[1] != '@') {
