@@ -29,6 +29,7 @@ class AutoMaid
      */
     public static $useTraits   = true;
     PUBLIC static $initSysConf = false;
+    public static $YAML_LEVEL = 4;
 
     protected $projectDir;
     /**
@@ -64,6 +65,10 @@ class AutoMaid
     protected $annotationReader;
 
     protected $amConfigFiles = array();
+    /**
+     * @var ContainerBuilder
+     */
+    protected $builder;
 
     function __construct()
     {
@@ -87,7 +92,7 @@ class AutoMaid
             //TODO Greg: below statement will cause a exception will booting kernel, a duplication raised. I may check it later
             $this->kernel->boot();
             $this->container = $this->kernel->getContainer();
-            $this->getServices();
+            $this->parseDefinedServices();
         }
 
         $this->annotationReader = new Reader();
@@ -144,7 +149,7 @@ class AutoMaid
             // backup old service.yml and config.yml
             rename($location, $location . '.' . posix_getpid() . '.bak');
             // write back to yaml file
-            file_put_contents($location, Yaml::dump($config));
+            file_put_contents($location, Yaml::dump($config), self::$YAML_LEVEL);
             // backup old configuration if there is any
             $amService = dirname(
                     $location
@@ -159,7 +164,7 @@ class AutoMaid
     /**
      * Get all already defined services
      */
-    public function getServices()
+    public function parseDefinedServices()
     {
         if (!empty($this->container)) {
             // TODO Greg: below code is questionable as getServiceIds is not part of ContainerInterface
@@ -380,7 +385,7 @@ class AutoMaid
 
         }
         foreach ($configs as $path => $config) {
-            file_put_contents($path, Yaml::dump($config));
+            file_put_contents($path, Yaml::dump($config, self::$YAML_LEVEL));
         }
     }
 
@@ -449,23 +454,35 @@ class AutoMaid
      */
     public function getServiceInfo($serviceName)
     {
-        $clazz = new \ReflectionClass($this->kernel);
-        $getter = $clazz->getMethod('buildContainer');
-        $getter->setAccessible(true);
-        $builder = $getter->invoke($this->kernel);
-        $builder->compile();
-        if ($builder->hasDefinition($serviceName)) {
-            // Found service
-            $definition = $builder->getDefinition($serviceName);
-        } elseif ($builder->hasAlias($serviceName)) {
-            // Found service
-            $alias = $builder->getAlias($serviceName);
+        if (empty($this->builder)) {
+            // TODO Greg: just leave below here, I may move them to separate method latter.
+            $clazz = new \ReflectionClass($this->kernel);
+            $getter = $clazz->getMethod('buildContainer');
+            $getter->setAccessible(true);
+            $this->builder = $getter->invoke($this->kernel);
+            $this->builder->compile();
+        }
 
-            $definition = $builder->getDefinition((string) $alias);
+        if ($this->builder->hasDefinition($serviceName)) {
+            // Found service
+            $definition = $this->builder->getDefinition($serviceName);
+        } elseif ($this->builder->hasAlias($serviceName)) {
+            // Found service
+            $alias = $this->builder->getAlias($serviceName);
+
+            $definition = $this->builder->getDefinition((string) $alias);
         } else {
             echo "No such service" . PHP_EOL;
         }
 
         return empty($definition)?null:$definition;
+    }
+
+    /**
+     * @return Service[]
+     */
+    public function getDefinedServices()
+    {
+        return $this->definedServices;
     }
 }
