@@ -31,6 +31,7 @@ class Service
     /**
      * @param $name
      * @param string $clazz Only generated service needs to know class name
+     * @param string $alias
      */
     function __construct($name, $clazz = '', $alias = '')
     {
@@ -67,7 +68,7 @@ class Service
     /**
      * @return \string[]
      */
-    public function &getDepends()
+    public function & getDepends()
     {
         return $this->depends;
     }
@@ -115,6 +116,7 @@ class Service
                 'service' => $serviceName,
                 'type'    => $type,
                 'setter'  => 'set' . ucwords($name),
+                'property' => $name,
                 'depend'  => $depend,
             );
         }
