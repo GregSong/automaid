@@ -11,7 +11,7 @@ namespace AutoMaid;
 
 use BadFunctionCallException;
 
-Trait DIServiceTraits
+Trait DIServiceTrait
 {
     protected $amServices = array();
     protected static $propertySet = false;

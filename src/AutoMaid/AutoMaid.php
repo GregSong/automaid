@@ -29,7 +29,7 @@ class AutoMaid
      */
     public static $useTraits   = true;
     PUBLIC static $initSysConf = false;
-    public static $YAML_LEVEL = 4;
+    public static $YAML_LEVEL  = 4;
 
     protected $projectDir;
     /**
@@ -149,7 +149,11 @@ class AutoMaid
             // backup old service.yml and config.yml
             rename($location, $location . '.' . posix_getpid() . '.bak');
             // write back to yaml file
-            file_put_contents($location, Yaml::dump($config), self::$YAML_LEVEL);
+            file_put_contents(
+                $location,
+                Yaml::dump($config),
+                self::$YAML_LEVEL
+            );
             // backup old configuration if there is any
             $amService = dirname(
                     $location
@@ -212,7 +216,7 @@ class AutoMaid
                 $this->logger->info('Loading file ' . $x->getFileName());
 
                 // There are a few files with php suffix but they are html acutally. I need to filter out them.
-                if(preg_match('/^.+\.html\.php$/',$x->getFileName())){
+                if (preg_match('/^.+\.html\.php$/', $x->getFileName())) {
                     continue;
                 }
 
@@ -400,7 +404,8 @@ class AutoMaid
     private function validateService(Service $service)
     {
         // Check depended service
-        foreach ($service->getDepends() as $serviceName => $val) {
+        $dependencies = & $service->getDepends();
+        foreach ($dependencies as $serviceName => &$val) {
             $this->logger->log('debug', "Validating service : $serviceName");
             if ($val['type'] == Service::SERVICE) {
                 foreach ($this->generateServices as $s) {
@@ -433,14 +438,43 @@ class AutoMaid
 
 
             // Check setter
-            $reflectClass = new \ReflectionClass($service->getClazz());
-            foreach ($reflectClass->getMethods() as $method) {
-                if ($method->getName() == $val['setter']) {
+            $clazz = new \ReflectionClass($service->getClazz());
+            foreach ($clazz->getMethods() as $method) {
+                if (strtolower($method->getName()) == strtolower($val['setter'])) {
                     $found = true;
+                    $val['setter'] = $method->getName();
                     break;
                 }
             }
             if (empty($found)) {
+                // if setter is not found, check if DIServiceTrait is defined and if there is a property with this name
+                foreach ($clazz->getProperties() as $p) {
+                    if (strtolower($p->getName()) == strtolower($val['property'])) {
+                        $propertyClazz = $p;
+                        $val['property'] = $p->getName();
+                        $val['setter'] = 'set'. preg_replace_callback(
+                            '/^(\\w)/',
+                            function($a){
+                                return strtoupper($a[0]);
+                            },
+                            $p->getName()
+                        );
+                        break;
+                    }
+                }
+
+                if (!empty($propertyClazz)) {
+                    foreach ($clazz->getTraits() as $trait) {
+                        if ($trait->getName() == 'DIServiceTrait') {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (empty($found)) {
+                        continue;
+                    }
+                }
+
                 throw new \Exception(
                     'A proper setter should be defined in traits namely set[ServiceName](Big Camel) as ' . $val['setter']
                 );
@@ -456,7 +490,7 @@ class AutoMaid
     {
         if (empty($this->builder)) {
             // TODO Greg: just leave below here, I may move them to separate method latter.
-            $clazz = new \ReflectionClass($this->kernel);
+            $clazz  = new \ReflectionClass($this->kernel);
             $getter = $clazz->getMethod('buildContainer');
             $getter->setAccessible(true);
             $this->builder = $getter->invoke($this->kernel);
@@ -470,12 +504,12 @@ class AutoMaid
             // Found service
             $alias = $this->builder->getAlias($serviceName);
 
-            $definition = $this->builder->getDefinition((string) $alias);
+            $definition = $this->builder->getDefinition((string)$alias);
         } else {
             echo "No such service" . PHP_EOL;
         }
 
-        return empty($definition)?null:$definition;
+        return empty($definition) ? null : $definition;
     }
 
     /**
