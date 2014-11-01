@@ -433,4 +433,11 @@ class AutoMaid
             }
         }
     }
+
+    /**
+     * @param string|null $serviceName
+     */
+    public function getServiceInfo($serviceName)
+    {
+    }
 }

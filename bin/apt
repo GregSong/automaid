@@ -31,4 +31,7 @@ AnnotationRegistry::registerLoader(
 $app = new Application('Automaid', '0.0.1');
 $app->add(new \AutoMaid\Command\ConfigurationInit('configuration:init'));
 $app->add(new \AutoMaid\Command\ConfigurationGen('configuration:generate'));
+$app->add(new \AutoMaid\Command\ConfigurationClean('configuration:clean'));
+$app->add(new \AutoMaid\Command\ConfigurationRefactor('configuration:refactor'));
+$app->add(new \AutoMaid\Command\ConfigurationDebug('configuration:dump'));
 $app->run();
