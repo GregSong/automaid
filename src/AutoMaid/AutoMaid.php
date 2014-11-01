@@ -13,6 +13,8 @@ use Monolog\Handler\StreamHandler;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Monolog\Logger;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Yaml\Yaml;
 
 class AutoMaid
@@ -201,7 +203,14 @@ class AutoMaid
                      RecursiveIteratorIterator::CHILD_FIRST
                  ) as $x) {
             if (!empty($x) && preg_match('/^.+\.php$/', $x->getFileName())) {
+
                 $this->logger->info('Loading file ' . $x->getFileName());
+
+                // There are a few files with php suffix but they are html acutally. I need to filter out them.
+                if(preg_match('/^.+\.html\.php$/',$x->getFileName())){
+                    continue;
+                }
+
                 /** @noinspection PhpIncludeInspection */
                 include_once $x->getPathname();
                 $phpFiles[] = $x->getPathname();
@@ -436,8 +445,27 @@ class AutoMaid
 
     /**
      * @param string|null $serviceName
+     * @return Definition|null
      */
     public function getServiceInfo($serviceName)
     {
+        $clazz = new \ReflectionClass($this->kernel);
+        $getter = $clazz->getMethod('buildContainer');
+        $getter->setAccessible(true);
+        $builder = $getter->invoke($this->kernel);
+        $builder->compile();
+        if ($builder->hasDefinition($serviceName)) {
+            // Found service
+            $definition = $builder->getDefinition($serviceName);
+        } elseif ($builder->hasAlias($serviceName)) {
+            // Found service
+            $alias = $builder->getAlias($serviceName);
+
+            $definition = $builder->getDefinition((string) $alias);
+        } else {
+            echo "No such service" . PHP_EOL;
+        }
+
+        return empty($definition)?null:$definition;
     }
 }
