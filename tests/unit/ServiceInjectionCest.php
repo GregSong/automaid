@@ -73,4 +73,10 @@ class ServiceInjectionCest
         );
         $container = $this->service->get('@service_container');
     }
+
+    public function inject_set_property(UnitTester $I){
+        $this->service->setMagic('Play Magic');
+
+        $I->assertEquals('Play Magic', $this->service->getMagic());
+    }
 }

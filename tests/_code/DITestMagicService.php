@@ -13,8 +13,18 @@ class DITestMagicService
 {
     use DIServiceTraits;
 
+    protected $magic;
+
     public function useService($name)
     {
         return print_r($this->amServices[$name], true);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMagic()
+    {
+        return $this->magic;
     }
 }

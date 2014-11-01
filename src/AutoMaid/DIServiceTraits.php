@@ -14,6 +14,7 @@ use BadFunctionCallException;
 Trait DIServiceTraits
 {
     protected $amServices = array();
+    protected static $propertySet = false;
 
     public function __call($name, $arguments)
     {
@@ -22,10 +23,23 @@ Trait DIServiceTraits
                 $arguments
             ) && sizeof($arguments) == 1
         ) {
-            $this->amServices[$matches[1]] = $arguments[0];
+            $property = ucwords($matches[1]);
+            $value = $arguments[0];
+            if (self::$propertySet) {
+                if (property_exists($this, $property)) {
+                    $this->$property = $value;
+                } else {
+                    throw new \Exception(
+                        "No such property($property) in class " . __CLASS__
+                    );
+                }
+            } else {
+                $this->amServices[$property] = $value;
+            }
+
         } else {
             throw new BadFunctionCallException(
-                "No such method ($name) found ."
+                "No such method ($name) found in " . __CLASS__
             );
         }
     }
