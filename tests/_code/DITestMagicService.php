@@ -1,5 +1,5 @@
 <?php
-use AutoMaid\DIServiceTraits;
+use AutoMaid\DIServiceTrait;
 
 /**
  * Created by PhpStorm.
@@ -11,7 +11,7 @@ use AutoMaid\DIServiceTraits;
 
 class DITestMagicService
 {
-    use DIServiceTraits;
+    use DIServiceTrait;
 
     protected $magic;
 
