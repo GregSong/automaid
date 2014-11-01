@@ -16,6 +16,14 @@ Trait DIServiceTraits
     protected $amServices = array();
     protected static $propertySet = false;
 
+    /**
+     * @param boolean $propertySet
+     */
+    public static function setPropertySet($propertySet)
+    {
+        self::$propertySet = $propertySet;
+    }
+
     public function __call($name, $arguments)
     {
         $matches = array();
@@ -23,7 +31,7 @@ Trait DIServiceTraits
                 $arguments
             ) && sizeof($arguments) == 1
         ) {
-            $property = ucwords($matches[1]);
+            $property = strtolower($matches[1]);
             $value = $arguments[0];
             if (self::$propertySet) {
                 if (property_exists($this, $property)) {

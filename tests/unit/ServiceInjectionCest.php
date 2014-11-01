@@ -75,6 +75,7 @@ class ServiceInjectionCest
     }
 
     public function inject_set_property(UnitTester $I){
+        DITestMagicService::setPropertySet(true);
         $this->service->setMagic('Play Magic');
 
         $I->assertEquals('Play Magic', $this->service->getMagic());
