@@ -13,5 +13,5 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class DIBaseController extends Controller
 {
-    use DIServiceTraits;
+    use DIServiceTrait;
 }
