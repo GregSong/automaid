@@ -47,7 +47,7 @@ trait DirTrait {
 
     public function detectProjectDir()
     {
-        $this->projectDir = dirname(dirname(dirname(dirname(dirname(dirname((__DIR__)))))));
+        $this->projectDir = dirname(dirname(dirname(dirname(dirname((__DIR__))))));
         $this->projectSrc = $this->projectDir . '/src';
     }
 
