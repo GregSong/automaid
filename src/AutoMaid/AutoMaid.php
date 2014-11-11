@@ -13,6 +13,7 @@ use Monolog\Handler\StreamHandler;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Monolog\Logger;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Yaml\Yaml;
@@ -22,6 +23,10 @@ class AutoMaid
     const SA                = 'AutoMaid\Annotation\ServiceAnnotation';
     const CA                = 'AutoMaid\Annotation\ControllerAnnotation';
     const DepA              = 'AutoMaid\Annotation\DepOn';
+    const TA                = 'AutoMaid\Annotation\Tags';
+    const AA                = 'AutoMaid\Annotation\Arguments';
+    const SCA               = 'AutoMaid\Annotation\Scope';
+    const FA                = 'AutoMaid\Annotation\Factory';
     const SERVICE_FILE_NAME = 'am_services.yml';
 
     /**
@@ -235,6 +240,32 @@ class AutoMaid
     }
 
     /**
+     * Parse 'Factory' annotation
+     * @param ReflectionClass $clazz
+     * @return array
+     * TODO Currently, not consider inheritance
+     */
+    public function parseFactory(\ReflectionClass $clazz)
+    {
+        $factory = array();
+        if (empty($clazz)) {
+            return $factory;
+        }
+
+        $factoryAnnotation = $this->annotationReader->getClassAnnotation(
+            $clazz,
+            self::FA
+        );
+
+        if (!empty($factoryAnnotation)) {
+            $factory = array(
+                'class'  => $factoryAnnotation->getClass(),
+                'method' => $factoryAnnotation->getMethod()
+            );
+        }
+        return $factory;
+    }
+    /**
      * @param \ReflectionClass|null $clazz
      * @return array
      */
@@ -269,6 +300,48 @@ class AutoMaid
     }
 
     /**
+     * Parse "Arguments Annotation"
+     * This function is a little complex as we need to find closest parent or the class itself
+     * which has arguments annotation and compare it with its __construct
+     * @param ReflectionClass $clazz
+     * @return array
+     */
+    public function parseArguments(\ReflectionClass $clazz)
+    {
+        $arguments = array();
+        if (empty($clazz)) {
+            return $arguments;
+        }
+        try {
+            // Step 1. get constructor
+            $constructor = $clazz->getMethod('__construct');
+            do {
+                $argumentAnnotation = $this->annotationReader->getClassAnnotation(
+                    $clazz,
+                    self::AA
+                );
+                if (!empty($argumentAnnotation)) {
+                    $arguments = $argumentAnnotation->getArguments();
+
+                    // TODO: Validate if constructor has same value numbers as @Arguments declared
+
+                    break;
+                }
+                $clazz = $clazz->getParentClass();
+            } while (!empty($clazz));
+        } catch (\Exception $e){
+            // Greg: no constructor, no need to trigger constructor injection, just return
+        }
+
+        return $arguments;
+    }
+
+    public function parseParent(\ReflectionClass $clazz)
+    {
+
+    }
+
+    /**
      * @param $clazz
      * @return Service
      */
@@ -286,11 +359,31 @@ class AutoMaid
                 'Found service ' . $serviceAnnotation->getName()
             );
             $service = new Service($serviceAnnotation->getName(), $clazz);
+            $service->setTop($serviceAnnotation->isTop());
+            $service->setAbstract($serviceAnnotation->isAbstract());
 
             // Greg: process DepOn
 
-            $service->add(
+            $service->addDeps(
                 $this->parseDepOn($reflectionClass)
+            );
+
+            // Greg: process arguments
+            $service->setArguments($this->parseArguments($reflectionClass));
+
+            // Greg: process Tags
+            $service->addTags(
+                $this->parseTags($reflectionClass)
+            );
+
+            // Greg process Scope
+            $service->setScope(
+                $this->parseScope($reflectionClass)
+            );
+
+            // Greg process factory
+            $service->setFactory(
+                $this->parseFactory($reflectionClass)
             );
 
             // Get File path of service
@@ -299,27 +392,27 @@ class AutoMaid
             $match = array();
 
             // This is a bundle service so put it under @Bundle/Common/Service
-            if (preg_match(
-                '/(^.+\/.+Bundle)\//',
-                $dir,
-                $match
-            )) {
+            if (!$service->isTop() && preg_match(
+                    '/(^.+\/.+Bundle)\//',
+                    $dir,
+                    $match
+                )
+            ) {
                 $cfgPath = $match[1] . DIRECTORY_SEPARATOR . 'Resources/config/am_services.yml';
                 $service->setCfgPath($cfgPath);
             } else {
-                if (preg_match(
-                    '/(^.+\/.+Bundle)\/Controller/',
-                    $dir,
-                    $match
-                )) // Controller? @Bundle/Controller, we may need to parse route from annotation
+                if (!$service->isTop() && preg_match(
+                        '/(^.+\/.+Bundle)\/Controller/',
+                        $dir,
+                        $match
+                    )
+                ) // Controller? @Bundle/Controller, we may need to parse route from annotation
                 {
-
                     // TODO Greg: I think it is better to have a separate file for controller
                     $cfgPath = $match[1] . DIRECTORY_SEPARATOR . 'Resources/config/am_services.yml';
                     $service->setCfgPath($cfgPath);
 
-                    // TODO Greg:Get routes
-
+                    // TODO Greg: Get routes
                 } else {
                     // A global service, should be under Common/Service
                     $service->setCfgPath(
@@ -327,13 +420,14 @@ class AutoMaid
                     );
                 }
             }
-
-
         }
 
         return $service;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function parseServices()
     {
         $classNames = $this->loadClass();
@@ -350,6 +444,25 @@ class AutoMaid
 
     }
 
+    /**
+     * @param ReflectionClass $clazz
+     * @return string
+     */
+    public function parseScope(\ReflectionClass $clazz)
+    {
+        if (empty($clazz)) {
+            return '';
+        }
+        $scopeAnnotation = $this->annotationReader->getClassAnnotation(
+            $clazz,
+            self::SCA
+        );
+        $scope = '';
+        if (!empty($scopeAnnotation)) {
+            $scope = $scopeAnnotation->getScope();
+        }
+        return $scope;
+    }
     /**
      * @param string $projectDir
      */
@@ -376,6 +489,7 @@ class AutoMaid
                 'class' => $service->getClazz(),
                 'calls' => array()
             );
+
             $serviceConf                   = &$services[$service->getName()];
             foreach ($service->getDepends() as $name => $depOn) {
                 $serviceConf['calls'][] = array(
@@ -383,8 +497,40 @@ class AutoMaid
                     array($depOn['depend']),
                 );
             }
+
+            foreach ($service->getTags() as $tag) {
+                $serviceConf['tags'][] = $tag;
+            }
+
+            foreach ($service->getArguments() as $argument) {
+                $serviceConf['arguments'][] = $argument;
+            }
+            $scope = $service->getScope();
+            if (!empty($scope)) {
+                $serviceConf['scope'] = $scope;
+            }
+
+            list($factoryClass, $factoryMethod) = $service->getFactory();
+            if (!empty($factoryClass) && !empty($factoryMethod)) {
+                $serviceConf['factory_class'] = $factoryClass;
+                $serviceConf['factory_method'] = $factoryMethod;
+            }
+
+            $serviceConf['abstract'] = $service->isAbstract();
+
+            if (empty($serviceConf['arguments'])) {
+                unset($serviceConf['arguments']);
+            }
+
+            if (empty($serviceConf['tags'])) {
+                unset($serviceConf['tags']);
+            }
+
             if (empty($serviceConf['calls'])) {
                 unset($serviceConf['calls']);
+            }
+            if (!$serviceConf['abstract']) {
+                unset($serviceConf['abstract']);
             }
 
         }
@@ -404,7 +550,7 @@ class AutoMaid
     private function validateService(Service $service)
     {
         // Check depended service
-        $dependencies = & $service->getDepends();
+        $dependencies = &$service->getDepends();
         foreach ($dependencies as $serviceName => &$val) {
             $this->logger->log('debug', "Validating service : $serviceName");
             if ($val['type'] == Service::SERVICE) {
@@ -440,8 +586,11 @@ class AutoMaid
             // Check setter
             $clazz = new \ReflectionClass($service->getClazz());
             foreach ($clazz->getMethods() as $method) {
-                if (strtolower($method->getName()) == strtolower($val['setter'])) {
-                    $found = true;
+                if (strtolower($method->getName()) == strtolower(
+                        $val['setter']
+                    )
+                ) {
+                    $found         = true;
                     $val['setter'] = $method->getName();
                     break;
                 }
@@ -449,16 +598,19 @@ class AutoMaid
             if (empty($found)) {
                 // if setter is not found, check if DIServiceTrait is defined and if there is a property with this name
                 foreach ($clazz->getProperties() as $p) {
-                    if (strtolower($p->getName()) == strtolower($val['property'])) {
-                        $propertyClazz = $p;
+                    if (strtolower($p->getName()) == strtolower(
+                            $val['property']
+                        )
+                    ) {
+                        $propertyClazz   = $p;
                         $val['property'] = $p->getName();
-                        $val['setter'] = 'set'. preg_replace_callback(
-                            '/^(\\w)/',
-                            function($a){
-                                return strtoupper($a[0]);
-                            },
-                            $p->getName()
-                        );
+                        $val['setter']   = 'set' . preg_replace_callback(
+                                '/^(\\w)/',
+                                function ($a) {
+                                    return strtoupper($a[0]);
+                                },
+                                $p->getName()
+                            );
                         break;
                     }
                 }
@@ -518,5 +670,23 @@ class AutoMaid
     public function getDefinedServices()
     {
         return $this->definedServices;
+    }
+
+    /**
+     * @param ReflectionClass $clazz
+     * @return array
+     */
+    private function parseTags(ReflectionClass $clazz)
+    {
+        if (empty($clazz)) {
+            return array();
+        }
+        $tags = array();
+        $ta   = $this->annotationReader->getClassAnnotation($clazz, self::TA);
+        if (!empty($ta)) {
+            $tags = $ta->getTags();
+        }
+
+        return $tags;
     }
 }

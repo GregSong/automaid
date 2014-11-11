@@ -19,6 +19,8 @@ class Service
     protected $alias;
     protected $clazz;
     protected $setter;
+    protected $tags = array();
+    protected $top = false;
     /**
      * @var array
      */
@@ -27,6 +29,45 @@ class Service
      * @var string
      */
     protected $cfgPath;
+    /**
+     * @var array
+     */
+    protected $arguments;
+    /**
+     * @var string
+     */
+    protected $scope;
+
+    /**
+     * @var bool
+     */
+    protected $abstract;
+
+    /**
+     * @var array
+     * should be:
+     * {
+     *  "class": factory_class
+     *  "method": factory_method
+     * }
+     */
+    protected $factory;
+
+    /**
+     * @return string
+     */
+    public function getScope()
+    {
+        return $this->scope;
+    }
+
+    /**
+     * @param string $scope
+     */
+    public function setScope($scope)
+    {
+        $this->scope = $scope;
+    }
 
     /**
      * @param $name
@@ -93,7 +134,7 @@ class Service
     /**
      * @param array $depends
      */
-    public function add($depends)
+    public function addDeps($depends)
     {
         $serviceName = '';
         foreach ($depends as $name => $depend) {
@@ -146,5 +187,79 @@ class Service
     public function setAlias($alias)
     {
         $this->alias = $alias;
+    }
+
+    public function addTags($tags)
+    {
+        $this->tags = $tags;
+    }
+
+    public function getTags()
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isTop()
+    {
+        return $this->top;
+    }
+
+    /**
+     * @param boolean $top
+     */
+    public function setTop($top)
+    {
+        $this->top = $top;
+    }
+
+    /**
+     * @param array $parseArguments
+     */
+    public function setArguments($parseArguments)
+    {
+        $this->arguments = $parseArguments;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArguments()
+    {
+        return $this->arguments;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFactory()
+    {
+        return $this->factory;
+    }
+
+    /**
+     * @param array $parseFactory
+     */
+    public function setFactory($parseFactory)
+    {
+        $this->factory = $parseFactory;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isAbstract()
+    {
+        return $this->abstract;
+    }
+
+    /**
+     * @param boolean $abstract
+     */
+    public function setAbstract($abstract)
+    {
+        $this->abstract = $abstract;
     }
 }
