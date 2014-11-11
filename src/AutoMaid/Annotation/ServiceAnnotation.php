@@ -13,6 +13,8 @@ namespace AutoMaid\Annotation;
  */
 class ServiceAnnotation {
     protected $name;
+    protected $top = false;
+    protected $abstract = false;
 
     public function __construct($options)
     {
@@ -39,5 +41,21 @@ class ServiceAnnotation {
     public function getName()
     {
         return $this->name;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isTop()
+    {
+        return $this->top;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isAbstract()
+    {
+        return $this->abstract;
     }
 }
