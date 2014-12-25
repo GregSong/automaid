@@ -52,6 +52,7 @@ class Service
      * }
      */
     protected $factory;
+    protected $parent;
 
     /**
      * @return string
@@ -261,5 +262,18 @@ class Service
     public function setAbstract($abstract)
     {
         $this->abstract = $abstract;
+    }
+
+    public function setParent($parseParent)
+    {
+        $this->parent = $parseParent;
+    }
+
+    /**
+     * @return string
+     */
+    public function getParent()
+    {
+        return $this->parent;
     }
 }

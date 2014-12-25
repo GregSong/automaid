@@ -8,6 +8,7 @@
 namespace AutoMaid;
 
 //use AppKernel;
+use AutoMaid\Annotation\Father;
 use Doctrine\Common\Annotations\AnnotationReader as Reader;
 use Monolog\Handler\StreamHandler;
 use RecursiveDirectoryIterator;
@@ -338,6 +339,23 @@ class AutoMaid
 
     public function parseParent(\ReflectionClass $clazz)
     {
+        $parent = null;
+        if(!empty($clazz)){
+            return $parent;
+        }
+
+        /* @var $parentAnnotation Father */
+        $parentAnnotation = $this->annotationReader->getClassAnnotation(
+            $clazz,
+            self::FA
+        );
+
+        $parent = $parentAnnotation->getParent();
+
+        if ($this->builder->hasDefinition($parent)) {
+            return $parent;
+        }
+        return null;
 
     }
 
@@ -386,6 +404,10 @@ class AutoMaid
                 $this->parseFactory($reflectionClass)
             );
 
+            // TODO process parent
+            $service->setParent(
+                $this->parseParent($reflectionClass)
+            );
             // Get File path of service
             $path  = $reflectionClass->getFileName();
             $dir   = dirname($path);
@@ -508,6 +530,11 @@ class AutoMaid
             $scope = $service->getScope();
             if (!empty($scope)) {
                 $serviceConf['scope'] = $scope;
+            }
+
+            $parent = $service->getParent();
+            if (!empty($parent)) {
+                $serviceConf['parent'] = $parent;
             }
 
             list($factoryClass, $factoryMethod) = $service->getFactory();

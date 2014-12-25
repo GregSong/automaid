@@ -17,10 +17,12 @@ namespace AutoMaid\Annotation;
 class Father
 {
     protected $parent;
+
     /**
-     * @param array $option
+     * @param array $options
+     * @internal param array $option
      */
-    public function __construct(array $option)
+    public function __construct(array $options)
     {
         if (isset($options['value'])) {
             $options['parent'] = $options['value'];
@@ -34,7 +36,7 @@ class Father
 
             $this->$key = $value;
         }
-        if (empty($this->name)) {
+        if (empty($this->parent)) {
             throw new \InvalidArgumentException("Service name is missing");
         }
     }
