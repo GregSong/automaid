@@ -28,6 +28,7 @@ class AutoMaid
     const AA                = 'AutoMaid\Annotation\Arguments';
     const SCA               = 'AutoMaid\Annotation\Scope';
     const FA                = 'AutoMaid\Annotation\Factory';
+    const FTA               = 'AutoMaid\Annotation\Father';
     const SERVICE_FILE_NAME = 'am_services.yml';
 
     /**
@@ -339,23 +340,25 @@ class AutoMaid
 
     public function parseParent(\ReflectionClass $clazz)
     {
-        $parent = null;
-        if(!empty($clazz)){
+        $parent = '';
+        if(empty($clazz)){
             return $parent;
         }
 
         /* @var $parentAnnotation Father */
         $parentAnnotation = $this->annotationReader->getClassAnnotation(
             $clazz,
-            self::FA
+            self::FTA
         );
 
-        $parent = $parentAnnotation->getParent();
-
-        if ($this->builder->hasDefinition($parent)) {
-            return $parent;
+        if(!empty($parentAnnotation)){
+            $parent = $parentAnnotation->getParent();
         }
-        return null;
+
+//        if ($this->builder->hasDefinition($parent)) {
+//            $parent = '';
+//        }
+        return $parent;
 
     }
 
