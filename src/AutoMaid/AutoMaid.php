@@ -387,7 +387,7 @@ class AutoMaid
             $service = new Service($serviceAnnotation->getName(), $clazz);
             $service->setTop($serviceAnnotation->isTop());
             $service->setAbstract($serviceAnnotation->isAbstract());
-            $service->setLazy($serviceAnnotation->isIsLazy());
+            $service->setLazy($serviceAnnotation->isLazy());
 
             // Greg: process DepOn
 
