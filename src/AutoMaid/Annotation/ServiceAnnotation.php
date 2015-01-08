@@ -15,6 +15,7 @@ class ServiceAnnotation {
     protected $name;
     protected $top = false;
     protected $abstract = false;
+    protected $lazy ;
 
     public function __construct($options)
     {
@@ -57,5 +58,21 @@ class ServiceAnnotation {
     public function isAbstract()
     {
         return $this->abstract;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLazy()
+    {
+        return $this->lazy;
+    }
+
+    /**
+     * @param boolean $lazy
+     */
+    public function setLazy($lazy)
+    {
+        $this->lazy = $lazy;
     }
 }

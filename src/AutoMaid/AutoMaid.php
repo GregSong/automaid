@@ -38,6 +38,11 @@ class AutoMaid
     PUBLIC static $initSysConf = false;
     public static $YAML_LEVEL  = 4;
 
+    /**
+     * @var boolean
+     */
+    protected $lazy;
+
     protected $projectDir;
     /**
      * @var Logger
@@ -382,6 +387,7 @@ class AutoMaid
             $service = new Service($serviceAnnotation->getName(), $clazz);
             $service->setTop($serviceAnnotation->isTop());
             $service->setAbstract($serviceAnnotation->isAbstract());
+            $service->setLazy($serviceAnnotation->isIsLazy());
 
             // Greg: process DepOn
 
@@ -547,6 +553,13 @@ class AutoMaid
             }
 
             $serviceConf['abstract'] = $service->isAbstract();
+            $lazy = $service->isLazy();
+            if(isset($this->lazy)){
+                $lazy = $this->lazy;
+            } elseif (isset($lazy)){
+                $lazy = false;
+            }
+            $serviceConf['lazy'] = $lazy;
 
             if (empty($serviceConf['arguments'])) {
                 unset($serviceConf['arguments']);
@@ -562,7 +575,6 @@ class AutoMaid
             if (!$serviceConf['abstract']) {
                 unset($serviceConf['abstract']);
             }
-
         }
         foreach ($configs as $path => $config) {
             file_put_contents($path, Yaml::dump($config, self::$YAML_LEVEL));
@@ -718,5 +730,21 @@ class AutoMaid
         }
 
         return $tags;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLazy()
+    {
+        return $this->lazy;
+    }
+
+    /**
+     * @param boolean $lazy
+     */
+    public function setLazy($lazy)
+    {
+        $this->lazy = $lazy;
     }
 }

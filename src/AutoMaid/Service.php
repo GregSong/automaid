@@ -21,6 +21,7 @@ class Service
     protected $setter;
     protected $tags = array();
     protected $top = false;
+    protected $lazy;
     /**
      * @var array
      */
@@ -275,5 +276,21 @@ class Service
     public function getParent()
     {
         return $this->parent;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLazy()
+    {
+        return $this->lazy;
+    }
+
+    /**
+     * @param boolean $lazy
+     */
+    public function setLazy($lazy)
+    {
+        $this->lazy = $lazy;
     }
 }
