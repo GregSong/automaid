@@ -21,6 +21,7 @@ class ConfigurationGen extends Command {
     use DirTrait;
 
     protected $paths = array();
+    protected $lazy = null;
     protected function configure()
     {
         $this->setDefinition(
@@ -31,6 +32,12 @@ class ConfigurationGen extends Command {
                     InputOption::VALUE_REQUIRED,
                     'Source file path which contains source code of service (based on project path)'
                 ),
+                new InputOption(
+                    'lazy',
+                    'z',
+                    InputOption::VALUE_NONE,
+                    'Overwrite lazy setting of service'
+                )
             )
         );
     }
@@ -46,7 +53,10 @@ class ConfigurationGen extends Command {
             $this->paths[] = $this->getProjectSrc();
         }
 
+        $this->lazy = $input->getOption('lazy');
+
         $automaid = new AutoMaid();
+        $automaid->setLazy($this->lazy);
         $automaid->setProjectDir($this->projectDir);
         $automaid->init();
 

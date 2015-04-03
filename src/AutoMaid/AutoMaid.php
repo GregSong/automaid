@@ -28,6 +28,7 @@ class AutoMaid
     const AA                = 'AutoMaid\Annotation\Arguments';
     const SCA               = 'AutoMaid\Annotation\Scope';
     const FA                = 'AutoMaid\Annotation\Factory';
+    const FTA               = 'AutoMaid\Annotation\Father';
     const SERVICE_FILE_NAME = 'am_services.yml';
 
     /**
@@ -36,6 +37,11 @@ class AutoMaid
     public static $useTraits   = true;
     PUBLIC static $initSysConf = false;
     public static $YAML_LEVEL  = 4;
+
+    /**
+     * @var boolean
+     */
+    protected $lazy;
 
     protected $projectDir;
     /**
@@ -339,23 +345,25 @@ class AutoMaid
 
     public function parseParent(\ReflectionClass $clazz)
     {
-        $parent = null;
-        if(!empty($clazz)){
+        $parent = '';
+        if(empty($clazz)){
             return $parent;
         }
 
         /* @var $parentAnnotation Father */
         $parentAnnotation = $this->annotationReader->getClassAnnotation(
             $clazz,
-            self::FA
+            self::FTA
         );
 
-        $parent = $parentAnnotation->getParent();
-
-        if ($this->builder->hasDefinition($parent)) {
-            return $parent;
+        if(!empty($parentAnnotation)){
+            $parent = $parentAnnotation->getParent();
         }
-        return null;
+
+//        if ($this->builder->hasDefinition($parent)) {
+//            $parent = '';
+//        }
+        return $parent;
 
     }
 
@@ -379,6 +387,7 @@ class AutoMaid
             $service = new Service($serviceAnnotation->getName(), $clazz);
             $service->setTop($serviceAnnotation->isTop());
             $service->setAbstract($serviceAnnotation->isAbstract());
+            $service->setLazy($serviceAnnotation->isLazy());
 
             // Greg: process DepOn
 
@@ -544,6 +553,13 @@ class AutoMaid
             }
 
             $serviceConf['abstract'] = $service->isAbstract();
+            $lazy = $service->isLazy();
+            if(isset($this->lazy)){
+                $lazy = $this->lazy;
+            } elseif (isset($lazy)){
+                $lazy = false;
+            }
+            $serviceConf['lazy'] = $lazy;
 
             if (empty($serviceConf['arguments'])) {
                 unset($serviceConf['arguments']);
@@ -559,7 +575,6 @@ class AutoMaid
             if (!$serviceConf['abstract']) {
                 unset($serviceConf['abstract']);
             }
-
         }
         foreach ($configs as $path => $config) {
             file_put_contents($path, Yaml::dump($config, self::$YAML_LEVEL));
@@ -715,5 +730,21 @@ class AutoMaid
         }
 
         return $tags;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLazy()
+    {
+        return $this->lazy;
+    }
+
+    /**
+     * @param boolean $lazy
+     */
+    public function setLazy($lazy)
+    {
+        $this->lazy = $lazy;
     }
 }
