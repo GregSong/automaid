@@ -1,13 +1,12 @@
 {
     "name": "kuroro2121/automaid",
     "description": "Scaffolding Tools for web application",
-    "version": "v0.1.2-alpha1",
     "keywords": ["annotation", "service", "dependency injection"],
     "type":"library",
     "require": {
         "php":">=5.4.0",
         "symfony/symfony": "~2",
-        "monolog/monolog": "~1.11.0"
+        "monolog/monolog": "~1"
     },
     "require-dev": {
       "sensio/generator-bundle": "~2.3",
