@@ -1,7 +1,7 @@
 {
     "name": "kuroro2121/automaid",
     "description": "Scaffolding Tools for web application",
-    "version": "0.1.2-alpha1",
+    "version": "v0.1.2-alpha1",
     "keywords": ["annotation", "service", "dependency injection"],
     "type":"library",
     "require": {
